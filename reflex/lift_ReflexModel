@@ -1,0 +1,76 @@
+23.12.2020 (float -> int8)
+ТЕКСТ МОДЕЛИ ЛИФТА
+// В качестве демонстрационного примера подходы использована задача автоматизации 
+// лифта для маломобильных пользователей (Рис. 1). 
+// Лифт представляет собой альтернативу пандусу и предназначен 
+// для вертикального перемещения пассажира на кресле-каталке 
+// между двумя разновысокими горизонтальным поверхностями, этажами. 
+// В состав лифта входит платформа с двумя дверями для каждого 
+// из этажей и двигатель. Двери платформы открываются и закрываются вручную. 
+// Состояние закрытия дверей регистрируется датчиками 
+// (top_floor_door_closed, lower_floor_door_closed). 
+// Имеются две кнопки вызова лифта 
+// (top_floor_call, lower_floor_call), расположенные на каждом этаже. 
+// На самой платформе расположены две кнопки управления перемещением (up_call, down_call). 
+// Два датчика (on_top_floor и on_lower_floor) регистрируют нахождение 
+// платформы лифта на верхнем и нижнем этаже соответственно.  
+// Двигатель вертикального перемещения платформы лифта управляется 
+// посредством сигналов up и down.
+//https://github.com/a-bastrykina/reflex-translator-diploma/tree/master/examples
+
+program Plant {
+	clock 0t10ms;
+	bool up;
+	bool down;
+	bool on_top_floor; // bool on_top_floor, on_lower_floor; ?
+	bool on_lower_floor; 
+	
+	const int8 ELEV_ACCEL = 1;
+	const int8 ELEV_MAX_SPEED = 5;
+	const int8 ELEV_DOWN_COORD = 100;
+	int8 v;
+	int8 coord;
+
+	process ElevatorSim { //
+		state Begin {	
+			v = 0;
+			coord = 0;
+			set state up_down; // next?				
+		}
+		state up_down looped {	
+			// calc. velocity (according to the restriction)
+			if (up) 			// if up ? 
+				v = v - ELEV_ACCEL;
+			else if (down) 
+				v = v + ELEV_ACCEL;
+			else
+				v = 0;
+			
+			if (v > ELEV_MAX_SPEED) 
+				v = ELEV_MAX_SPEED;
+			else if (v < (0 - ELEV_MAX_SPEED)) 
+				v = 0 - ELEV_MAX_SPEED;
+			
+			
+			// calc. coordinate (according to the restriction)
+			coord = coord + v;
+			if (coord < 0) 
+				coord = 0;
+			else if (coord > ELEV_DOWN_COORD) 
+				coord = ELEV_DOWN_COORD;
+			
+			
+			// имитация датчиков наличия лифта на этажах по координате:
+			on_top_floor = false; // подсветка false ? 
+			on_lower_floor = false;
+			
+			if (coord < 5)  
+				on_top_floor = true;
+			else if (coord > 95) 
+				on_lower_floor = true;
+		}
+	
+	}
+}
+
+
